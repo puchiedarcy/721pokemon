@@ -1,0 +1,64 @@
+.pokemon {
+	margin: 0 auto;
+	width: 150px;
+	margin-top: 5px;
+}
+
+#container {
+	margin: 0 auto;
+	width: 500px;
+}
+
+.unknown {
+	background-image: url("http://img3.wikia.nocookie.net/__cb20120822212826/nintendo/en/images/8/82/Blank_PKMN.png");
+	background-repeat: no-repeat;
+	background-position: center; 
+}
+
+img {
+    max-width: 140px;
+    height: auto;
+}
+
+.pokemon > span {
+	color: green;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+#guessEntry {
+	margin: 0 auto;
+	width: 100%;
+}
+
+#guess {
+	width: 196px;
+	text-align: center;
+}
+
+#stage {
+	width: 200px;
+	height: 600px;
+	float: left;
+	overflow: scroll;
+	border: 1px solid black;
+}
+
+#nav {
+	float: left;
+	border: 1px solid gray;
+	width: 200px;
+	height: 600px;
+	text-align: center;
+	line-height: 2em;
+}
+
+#quitter {
+	overflow: scroll;
+	width: 160px;
+	height: 330px;
+	margin: 0 auto;
+	border: 1px solid black;
+}

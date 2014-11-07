@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		
+		<link href="styles.css" rel="stylesheet" type="text/css">
+		
+		<script src="jquery-2.1.0.min.js" type="text/javascript"></script>
+		<script src="jquery.cookie.js" type="text/javascript"></script>
+		<script src="handlebars-v1.3.0.js" type="text/javascript"></script>
+		<script src="pokemon.js" type="text/javascript"></script>
+		
+		<title>721 Pokemon</title>
+	</head>
+	<body>
+		<div id="container">
+			<div id="guessEntry">
+				<input id="guess" type="text" disabled="disabled" value="Loading images..." />
+			</div>
+			<div id="stage"></div>
+			<div id="nav">
+				<div id="totalCount"><span id="total">0/721</span>&nbsp;(<span id="percent">0%</span>)</div>
+				<div id="gen-1"><a name="genNav" data-firstDexNo="001" href="javascript:void(0);">RB</a>&nbsp;<span id="total-1">0/151</span>&nbsp;(<span id="percent-1">0%</span>)</div>
+				<div id="gen-2"><a name="genNav" data-firstDexNo="152" href="javascript:void(0);">GS</a>&nbsp;<span id="total-2">0/100</span>&nbsp;(<span id="percent-2">0%</span>)</div>
+				<div id="gen-3"><a name="genNav" data-firstDexNo="252" href="javascript:void(0);">RS</a>&nbsp;<span id="total-3">0/135</span>&nbsp;(<span id="percent-3">0%</span>)</div>
+				<div id="gen-4"><a name="genNav" data-firstDexNo="387" href="javascript:void(0);">DP</a>&nbsp;<span id="total-4">0/107</span>&nbsp;(<span id="percent-4">0%</span>)</div>
+				<div id="gen-5"><a name="genNav" data-firstDexNo="494" href="javascript:void(0);">BW</a>&nbsp;<span id="total-5">0/156</span>&nbsp;(<span id="percent-5">0%</span>)</div>
+				<div id="gen-6"><a name="genNav" data-firstDexNo="650" href="javascript:void(0);">XY</a>&nbsp;<span id="total-6">0/72</span>&nbsp;(<span id="percent-6">0%</span>)</div>
+				<div>
+					<input id="giveup" type="button" value="Give Up" />
+					<div id="quitter" style="overflow: scroll;"></div>
+				</div>
+			</div>
+		</div>
+		
+		<script id="pokemon-template" type="text/x-handlebars-template">
+				<div id="{{pokedexNumber}}" name="{{{tolower pokemonName}}}" class="pokemon unknown">
+					{{pokedexNumber}}.&nbsp;
+					<span class="hidden">{{pokemonName}}<img src="http://www.serebii.net/xy/pokemon/{{pokedexNumber}}.png"></span>
+					
+			</div>
+    </script>
+		
+		<script id="pokemonList-template" type="text/x-handlebars-template">
+        {{#each pokemon}}
+            {{> pokemon}}
+        {{/each}}
+    </script>
+		
+		<script>
+		var stage = $("#stage");
+		var guess = $("#guess");
+		var totalDiv = $("#total");
+		var percentDiv = $("#percent");
+		var genCounts = [0,0,0,0,0,0];
+		var genTotals = [151,100,135,107,156,72];
+		
+		var total = 0;
+		var em = 1;
+		var unnamedPokemon = jQuery.extend(true, {}, pokemon);;
+		
+		function renderTemplate(templateName, data) {
+				Handlebars.registerHelper('tolower', function(str) {
+				  return str.toLowerCase();
+				});
+			
+        var template = Handlebars.compile($("#"+templateName+"-template").html());
+				Handlebars.registerPartial("pokemon", $("#pokemon-template").html()); 
+        var html = template(data);
+
+        stage.html(html);
+    }
+		
+		jQuery.fn.scrollTo = function(elem, speed) { 
+		    $(this).animate({
+		        scrollTop:  $(this).scrollTop() - $(this).offset().top + $(elem).offset().top 
+		    }, speed == undefined ? 1000 : speed); 
+		    return this; 
+		};
+		
+		function precise_round(num,decimals) {
+		    return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+		}
+		
+		function scrollToPokemon(dexNo) {
+			stage.scrollTo($("#"+dexNo), 200);
+		}
+		
+		function flash(elem) {
+			elem.fadeOut(0);
+			elem.fadeIn(1000);
+		}
+		
+		function updateGenTotals(dexNo) {
+			var gen = 0;
+			if (dexNo < 152) {
+				gen = 1;
+			} else if (dexNo < 252) {
+				gen = 2;
+			} else if (dexNo < 387) {
+				gen = 3;
+			} else if (dexNo < 494) {
+				gen = 4;
+			} else if (dexNo < 650) {
+				gen = 5;
+			} else {
+				gen = 6;
+			}
+			
+			genCounts[gen-1]++;
+			$("#total-"+gen).text(genCounts[gen-1] + "/" + genTotals[gen-1]);
+			$("#percent-"+gen).text(precise_round(genCounts[gen-1]/genTotals[gen-1]*100, 2) + "%");
+			flash($("#gen-"+gen));
+		}
+		
+		$(document).ready(function () {
+			var pokemonList  = {pokemon: pokemon};
+			renderTemplate("pokemonList", pokemonList);
+			
+			guess.keyup(function (e) {
+				var guessedName = guess.val().toLowerCase();
+				var pokemonDiv = $("div[name='"+guessedName+"']");
+				
+				if(pokemonDiv.length !== 0) {
+					var dexNo = pokemonDiv.attr("id");
+					if (unnamedPokemon[dexNo-1] != null) {
+						guess.val("");
+						unnamedPokemon[dexNo-1] = null;
+						
+						total++;
+						totalDiv.text(total + "/721");
+						percentDiv.text(precise_round(total/721*100, 2) + "%");
+						flash($("#totalCount"));
+						
+						pokemonDiv.removeClass("unknown");
+						scrollToPokemon(dexNo);
+						var nameSpan = pokemonDiv.children("span");
+						nameSpan.removeClass("hidden");
+						flash(nameSpan);
+						
+						updateGenTotals(dexNo);
+					}
+				}
+			});
+			
+			$("a[name='genNav']").click(function() {
+					scrollToPokemon($(this).attr("data-firstDexNo"));
+			});
+			
+			$("#giveup").click(function() {
+				var quitter = $("#quitter");
+				quitter.text("");
+				$.each(unnamedPokemon, function() {
+					if (this.pokemonName) {
+						quitter.append(this.pokemonName + "<br>");
+					}
+				});
+			});
+		});
+		
+		$(window).load(function () {
+			guess.prop('disabled', false);
+			guess.val("");
+			guess.focus();
+		});
+		</script>
+	</body>
+</html>
